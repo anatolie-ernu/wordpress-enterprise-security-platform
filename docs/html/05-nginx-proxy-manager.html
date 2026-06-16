@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><title>05. Nginx Proxy Manager</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>05. Nginx Proxy Manager</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>05. Nginx Proxy Manager</h1>
+<h2>Purpose</h2>
+<p>Nginx Proxy Manager is the public reverse proxy and certificate manager. It terminates HTTP/HTTPS traffic and forwards requests to local backend Nginx websites.</p>
+<h2>Directory Layout</h2>
+<pre><code>mkdir -p /opt/docker/nginx-proxy-manager/data
+mkdir -p /opt/docker/nginx-proxy-manager/letsencrypt
+mkdir -p /opt/docker/nginx-proxy-manager/logs
+cd /opt/docker/nginx-proxy-manager</code></pre>
+<h2>Docker Compose</h2>
+<p>Create:</p>
+<pre><code>nano /opt/docker/nginx-proxy-manager/docker-compose.yml</code></pre>
+<p>Content:</p>
+<pre><code>services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - &quot;80:80&quot;
+      - &quot;443:443&quot;
+      - &quot;10.10.10.20:81:81&quot;
+    environment:
+      DB_MYSQL_HOST: &quot;host.docker.internal&quot;
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: &quot;npm_user&quot;
+      DB_MYSQL_PASSWORD: &quot;CHANGE_THIS_COMPLEX_PASSWORD&quot;
+      DB_MYSQL_NAME: &quot;npm&quot;
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+      - ./logs:/data/logs
+    extra_hosts:
+      - &quot;host.docker.internal:host-gateway&quot;</code></pre>
+<h2>Deploy</h2>
+<pre><code>docker compose up -d
+docker ps</code></pre>
+<h2>Admin UI</h2>
+<p>Access from LAN only:</p>
+<pre><code>http://10.10.10.20:81</code></pre>
+<p>Immediately change the default admin credentials.</p>
+<h2>Proxy Host for wp01</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Domain Names</td><td>`wp01.ernu.sec`</td></tr>
+<tr><td>Scheme</td><td>`http`</td></tr>
+<tr><td>Forward Hostname/IP</td><td>`127.0.0.1` or host gateway IP</td></tr>
+<tr><td>Forward Port</td><td>`8081`</td></tr>
+<tr><td>Websockets Support</td><td>Enabled if needed</td></tr>
+<tr><td>Block Common Exploits</td><td>Enabled</td></tr>
+</table>
+<p>For Docker-to-host communication, use the host gateway address when <code>127.0.0.1</code> refers to the container itself.</p>
+<h2>Proxy Host for wp02</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Domain Names</td><td>`wp02.ernu.sec`</td></tr>
+<tr><td>Scheme</td><td>`http`</td></tr>
+<tr><td>Forward Hostname/IP</td><td>`127.0.0.1` or host gateway IP</td></tr>
+<tr><td>Forward Port</td><td>`8082`</td></tr>
+<tr><td>Websockets Support</td><td>Enabled if needed</td></tr>
+<tr><td>Block Common Exploits</td><td>Enabled</td></tr>
+</table>
+<h2>Advanced Headers</h2>
+<p>Use NPM Advanced configuration to preserve visitor IP:</p>
+<pre><code>proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $host;</code></pre>
+<h2>Logs</h2>
+<p>NPM logs are stored in:</p>
+<pre><code>/opt/docker/nginx-proxy-manager/logs
+/opt/docker/nginx-proxy-manager/data/logs</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

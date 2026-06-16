@@ -1,0 +1,14 @@
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+
+To                         Action      From
+--                         ------      ----
+2222/tcp                   ALLOW IN    10.10.10.0/24              # SSH admin LAN only
+81/tcp                     ALLOW IN    10.10.10.0/24              # NPM admin LAN only
+80/tcp                     ALLOW IN    Anywhere                   # Public HTTP to NPM
+443/tcp                    ALLOW IN    Anywhere                   # Public HTTPS to NPM
+81/tcp                     DENY IN     Anywhere                   # Block public NPM admin
+3306/tcp                   DENY IN     Anywhere                   # Block public MariaDB
+8081/tcp                   DENY IN     Anywhere                   # Block public wp01 backend
+8082/tcp                   DENY IN     Anywhere                   # Block public wp02 backend

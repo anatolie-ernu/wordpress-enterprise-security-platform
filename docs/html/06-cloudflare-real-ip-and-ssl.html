@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><title>06. Cloudflare Real IP and SSL</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>06. Cloudflare Real IP and SSL</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>06. Cloudflare Real IP and SSL</h1>
+<h2>Purpose</h2>
+<p>Cloudflare sits in front of Nginx Proxy Manager. The platform must preserve real visitor IPs through the full chain:</p>
+<pre><code>Cloudflare -&gt; NPM -&gt; Backend Nginx -&gt; WordPress/PHP-FPM -&gt; Logs/Fail2Ban</code></pre>
+<h2>Cloudflare DNS</h2>
+<p>Create proxied DNS records:</p>
+<table>
+<tr><th>Name</th><th>Type</th><th>Target</th><th>Proxy</th></tr>
+<tr><td>`wp01.ernu.sec`</td><td>A</td><td>Public server IP</td><td>Proxied</td></tr>
+<tr><td>`wp02.ernu.sec`</td><td>A</td><td>Public server IP</td><td>Proxied</td></tr>
+</table>
+<h2>SSL Mode</h2>
+<p>Recommended Cloudflare SSL mode:</p>
+<pre><code>Full (strict)</code></pre>
+<h2>Cloudflare DNS Challenge Token</h2>
+<p>Create a Cloudflare API Token with minimum DNS permissions:</p>
+<pre><code>Zone:DNS:Edit
+Zone:Zone:Read</code></pre>
+<p>Limit the token to the required zone only.</p>
+<p>Do not store the token in the repository.</p>
+<h2>NPM Certificate Request</h2>
+<p>In Nginx Proxy Manager:</p>
+<p>1. Go to SSL Certificates.</p>
+<p>2. Add certificate.</p>
+<p>3. Select Let&#x27;s Encrypt.</p>
+<p>4. Enable DNS Challenge.</p>
+<p>5. Select Cloudflare.</p>
+<p>6. Paste the Cloudflare API Token.</p>
+<p>7. Request certificate.</p>
+<h2>Backend Real IP Snippet</h2>
+<p>Create:</p>
+<pre><code>nano /etc/nginx/snippets/cloudflare-real-ip.conf</code></pre>
+<p>Content template:</p>
+<pre><code># Cloudflare IPv4 ranges - update regularly
+set_real_ip_from 173.245.48.0/20;
+set_real_ip_from 103.21.244.0/22;
+set_real_ip_from 103.22.200.0/22;
+set_real_ip_from 103.31.4.0/22;
+set_real_ip_from 141.101.64.0/18;
+set_real_ip_from 108.162.192.0/18;
+set_real_ip_from 190.93.240.0/20;
+set_real_ip_from 188.114.96.0/20;
+set_real_ip_from 197.234.240.0/22;
+set_real_ip_from 198.41.128.0/17;
+set_real_ip_from 162.158.0.0/15;
+set_real_ip_from 104.16.0.0/13;
+set_real_ip_from 104.24.0.0/14;
+set_real_ip_from 172.64.0.0/13;
+set_real_ip_from 131.0.72.0/22;
+
+real_ip_header CF-Connecting-IP;
+real_ip_recursive on;</code></pre>
+<h2>Include in Backend Nginx</h2>
+<p>Inside each backend server block:</p>
+<pre><code>include /etc/nginx/snippets/cloudflare-real-ip.conf;</code></pre>
+<h2>Log Format for Real IP</h2>
+<p>In <code>/etc/nginx/nginx.conf</code>:</p>
+<pre><code>log_format realip &#x27;$remote_addr - $remote_user [$time_local] &#x27;
+                  &#x27;&quot;$request&quot; $status $body_bytes_sent &#x27;
+                  &#x27;&quot;$http_referer&quot; &quot;$http_user_agent&quot; &#x27;
+                  &#x27;xff=&quot;$http_x_forwarded_for&quot; cf=&quot;$http_cf_connecting_ip&quot;&#x27;;</code></pre>
+<p>Use:</p>
+<pre><code>access_log /var/log/nginx/wp01.access.log realip;</code></pre>
+<h2>Verify</h2>
+<pre><code>tail -f /var/log/nginx/wp01.access.log</code></pre>
+<p>The logged client IP must be the real visitor IP, not only the proxy container IP.</p>
+<h2>Automatic Cloudflare IP Update</h2>
+<p>Use a scheduled script to update Cloudflare ranges from the official endpoints and reload Nginx after validation.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><title>07. WordPress Installation</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>07. WordPress Installation</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>07. WordPress Installation</h1>
+<h2>Site Naming</h2>
+<table>
+<tr><th>Site</th><th>Domain</th><th>Root</th></tr>
+<tr><td>wp01</td><td>`wp01.ernu.sec`</td><td>`/var/www/wp01`</td></tr>
+<tr><td>wp02</td><td>`wp02.ernu.sec`</td><td>`/var/www/wp02`</td></tr>
+</table>
+<h2>Create System User</h2>
+<pre><code>adduser --system --group --home /var/www/wp01 wp01
+adduser --system --group --home /var/www/wp02 wp02</code></pre>
+<h2>Download WordPress</h2>
+<pre><code>mkdir -p /var/www/wp01
+cd /tmp
+curl -O https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz
+rsync -a wordpress/ /var/www/wp01/
+chown -R wp01:wp01 /var/www/wp01</code></pre>
+<p>Repeat for <code>wp02</code> with its own root and user.</p>
+<h2>wp-config.php Security Constants</h2>
+<pre><code>define(&#x27;DISALLOW_FILE_EDIT&#x27;, true);
+define(&#x27;DISALLOW_FILE_MODS&#x27;, false);
+define(&#x27;FORCE_SSL_ADMIN&#x27;, true);
+define(&#x27;WP_AUTO_UPDATE_CORE&#x27;, &#x27;minor&#x27;);
+define(&#x27;FS_METHOD&#x27;, &#x27;direct&#x27;);</code></pre>
+<p>Add reverse proxy HTTPS handling:</p>
+<pre><code>if (isset($_SERVER[&#x27;HTTP_X_FORWARDED_PROTO&#x27;]) &amp;&amp; $_SERVER[&#x27;HTTP_X_FORWARDED_PROTO&#x27;] === &#x27;https&#x27;) {
+    $_SERVER[&#x27;HTTPS&#x27;] = &#x27;on&#x27;;
+}</code></pre>
+<h2>Database Configuration</h2>
+<pre><code>define(&#x27;DB_NAME&#x27;, &#x27;wp01_db&#x27;);
+define(&#x27;DB_USER&#x27;, &#x27;wp01_user&#x27;);
+define(&#x27;DB_PASSWORD&#x27;, &#x27;CHANGE_THIS_COMPLEX_PASSWORD&#x27;);
+define(&#x27;DB_HOST&#x27;, &#x27;localhost&#x27;);
+define(&#x27;DB_CHARSET&#x27;, &#x27;utf8mb4&#x27;);
+define(&#x27;DB_COLLATE&#x27;, &#x27;&#x27;);</code></pre>
+<h2>Authentication Keys</h2>
+<p>Generate unique salts from the WordPress official salt generator and replace all placeholder keys.</p>
+<h2>Disable PHP Execution in Uploads</h2>
+<p>Backend Nginx must deny PHP execution under:</p>
+<pre><code>/wp-content/uploads/</code></pre>
+<p>See <code>08-backend-nginx-sites.md</code> and <code>13-wordpress-filesystem-permissions.md</code>.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

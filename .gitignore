@@ -1,0 +1,13 @@
+.env
+*.bak
+*.tmp
+*.swp
+.DS_Store
+__pycache__/
+/data/
+/letsencrypt/
+/logs/
+/backups/
+*.tar.gz
+*.zip
+!wordpress-enterprise-security-platform-v*.zip

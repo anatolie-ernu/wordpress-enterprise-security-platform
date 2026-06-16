@@ -1,0 +1,35 @@
+services:
+npm-app:
+image: jc21/nginx-proxy-manager:latest
+container_name: npm-app
+restart: unless-stopped
+ports:
+- '80:80'
+- '443:443'
+- '10.10.10.20:81:81'
+environment:
+TZ: ${TZ}
+DB_MYSQL_HOST: ${NPM_DB_HOST}
+DB_MYSQL_PORT: ${NPM_DB_PORT}
+DB_MYSQL_USER: ${NPM_DB_USER}
+DB_MYSQL_PASSWORD: ${NPM_DB_PASSWORD}
+DB_MYSQL_NAME: ${NPM_DB_NAME}
+volumes:
+- ./data:/data
+- ./letsencrypt:/etc/letsencrypt
+- ./logs:/data/logs
+extra_hosts:
+- 'host.docker.internal:host-gateway'
+networks:
+- npm_net
+networks:
+npm_net:
+name: npm_netGHID SECURIZARE WORDPRESS | Debian 13 + Nginx + MariaDB + PHP 8.x | Anatolie Ernu
+MIT License | Copyright © 2026 Anatolie Ernu
+Author attribution must be preserved in copies or substantial portions of
+this project.
+Pagina 29 din 31
+driver: bridge
+ipam:
+config:
+- subnet: 172.30.10.0/24

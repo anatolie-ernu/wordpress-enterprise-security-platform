@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><title>16. Disaster Recovery</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>16. Disaster Recovery</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>16. Disaster Recovery</h1>
+<h2>Scenario 1: NPM Container Failure</h2>
+<pre><code>cd /opt/docker/nginx-proxy-manager
+docker compose ps
+docker compose logs --tail=200
+docker compose restart</code></pre>
+<p>If the container cannot start, restore NPM data from backup.</p>
+<h2>Scenario 2: Database Corruption</h2>
+<p>1. Stop application traffic if possible.</p>
+<p>2. Backup current corrupted state for forensic purposes.</p>
+<p>3. Restore last known good SQL dump.</p>
+<p>4. Validate WordPress login and frontend.</p>
+<pre><code>mysql wp01_db &lt; /backup/wordpress-platform/latest/wp01_db.sql</code></pre>
+<h2>Scenario 3: WordPress File Corruption</h2>
+<pre><code>sudo -u wp01 wp --path=/var/www/wp01 core verify-checksums
+find /var/www/wp01/wp-content/uploads -type f -name &#x27;*.php&#x27; -ls</code></pre>
+<p>Restore from file backup if needed.</p>
+<h2>Scenario 4: Certificate Failure</h2>
+<p>1. Check Cloudflare DNS token.</p>
+<p>2. Check NPM certificate renewal logs.</p>
+<p>3. Reissue certificate with DNS Challenge.</p>
+<p>4. Confirm Cloudflare SSL mode is Full strict.</p>
+<h2>Scenario 5: Backend 502 Error</h2>
+<p>Check:</p>
+<pre><code>systemctl status php8.3-fpm
+ls -l /run/php/php8.3-wp01.sock
+nginx -t
+journalctl -u php8.3-fpm -n 100</code></pre>
+<p>Most common causes:</p>
+<p>• PHP-FPM pool not running</p>
+<p>• wrong socket path</p>
+<p>• wrong socket ownership</p>
+<p>• backend Nginx points to wrong pool</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

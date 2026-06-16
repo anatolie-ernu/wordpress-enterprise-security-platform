@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><title>18. Troubleshooting</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>18. Troubleshooting</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>18. Troubleshooting</h1>
+<h2>NPM Does Not Start</h2>
+<pre><code>cd /opt/docker/nginx-proxy-manager
+docker compose ps
+docker compose logs --tail=200</code></pre>
+<p>Check DB connection to MariaDB.</p>
+<h2>Port 80 or 443 Already in Use</h2>
+<pre><code>ss -tulpn | egrep &#x27;:80|:443&#x27;</code></pre>
+<p>Only NPM should listen publicly on 80/443.</p>
+<h2>NPM Admin UI Not Accessible</h2>
+<p>Check binding:</p>
+<pre><code>docker ps
+ss -tulpn | grep &#x27;:81&#x27;
+ufw status verbose</code></pre>
+<p>Expected:</p>
+<pre><code>10.10.10.20:81</code></pre>
+<h2>WordPress 502 Bad Gateway</h2>
+<pre><code>systemctl status nginx
+systemctl status php8.3-fpm
+ls -l /run/php/php8.3-wp01.sock
+cat /var/log/nginx/wp01.error.log</code></pre>
+<h2>Wrong Visitor IP in Logs</h2>
+<p>Check headers:</p>
+<p>• Cloudflare sends `CF-Connecting-IP`.</p>
+<p>• NPM passes `X-Forwarded-For`.</p>
+<p>• Backend Nginx includes Cloudflare real IP snippet.</p>
+<h2>MariaDB Not Reachable</h2>
+<pre><code>ss -tulpn | grep 3306
+mysql -u wp01_user -p -h localhost wp01_db</code></pre>
+<p>Expected bind address:</p>
+<pre><code>127.0.0.1:3306</code></pre>
+<h2>Fail2Ban Not Banning</h2>
+<pre><code>fail2ban-client status
+fail2ban-regex /var/log/nginx/wp01.access.log /etc/fail2ban/filter.d/wordpress-login.conf</code></pre>
+<p>If the IP is wrong, fix real IP first.</p>
+<h2>ModSecurity False Positives</h2>
+<p>Review:</p>
+<pre><code>tail -f /var/log/modsec_audit.log</code></pre>
+<p>Add targeted exclusions only after analysis.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

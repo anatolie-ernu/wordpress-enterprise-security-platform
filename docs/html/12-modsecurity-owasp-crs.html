@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>12. ModSecurity OWASP CRS</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>12. ModSecurity OWASP CRS</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>12. ModSecurity OWASP CRS</h1>
+<h2>Purpose</h2>
+<p>ModSecurity with OWASP Core Rule Set can add an additional WAF layer on the backend Nginx side. In this project it is optional because Cloudflare and NPM already provide edge controls, but it is useful for high-security deployments.</p>
+<h2>Recommended Deployment Mode</h2>
+<p>Start in detection-only mode:</p>
+<pre><code>SecRuleEngine DetectionOnly</code></pre>
+<p>Move to blocking mode only after reviewing false positives:</p>
+<pre><code>SecRuleEngine On</code></pre>
+<h2>Install Packages</h2>
+<pre><code>apt install -y libnginx-mod-http-modsecurity modsecurity-crs</code></pre>
+<h2>Enable ModSecurity in Nginx</h2>
+<pre><code>modsecurity on;
+modsecurity_rules_file /etc/nginx/modsec/main.conf;</code></pre>
+<h2>OWASP CRS Exclusions</h2>
+<p>WordPress may require exclusions for specific admin actions, uploads, REST API calls or plugin endpoints.</p>
+<p>Do not disable CRS globally. Use targeted exclusions by rule ID, URI or parameter name.</p>
+<p>Example:</p>
+<pre><code>SecRuleRemoveById 949110</code></pre>
+<p>Only add exclusions after confirming the rule, request path and business impact.</p>
+<h2>Logging</h2>
+<p>Review:</p>
+<pre><code>tail -f /var/log/nginx/error.log
+tail -f /var/log/modsec_audit.log</code></pre>
+<h2>Production Checklist</h2>
+<p>• Start in detection mode.</p>
+<p>• Monitor false positives for at least several days.</p>
+<p>• Add targeted exclusions.</p>
+<p>• Switch to blocking mode only after testing.</p>
+<p>• Document every exclusion.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

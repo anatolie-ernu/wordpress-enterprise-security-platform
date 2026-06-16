@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8"><title>09. PHP-FPM Pools</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>09. PHP-FPM Pools</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>09. PHP-FPM Pools</h1>
+<h2>Purpose</h2>
+<p>Each WordPress site must run through its own PHP-FPM pool and Linux user. This reduces lateral movement risk if one site is compromised.</p>
+<h2>Install PHP 8.3 Packages</h2>
+<pre><code>apt install -y php8.3-fpm php8.3-cli php8.3-mysql php8.3-curl php8.3-gd \
+  php8.3-mbstring php8.3-xml php8.3-zip php8.3-intl php8.3-imagick</code></pre>
+<h2>PHP Hardening</h2>
+<p>Edit:</p>
+<pre><code>nano /etc/php/8.3/fpm/php.ini</code></pre>
+<p>Recommended values:</p>
+<pre><code>expose_php = Off
+memory_limit = 256M
+upload_max_filesize = 64M
+post_max_size = 64M
+max_execution_time = 120
+max_input_time = 120
+allow_url_fopen = Off
+allow_url_include = Off
+cgi.fix_pathinfo = 0</code></pre>
+<h2>wp01 Pool</h2>
+<pre><code>[wp01]
+user = wp01
+group = wp01
+listen = /run/php/php8.3-wp01.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+pm = dynamic
+pm.max_children = 20
+pm.start_servers = 5
+pm.min_spare_servers = 3
+pm.max_spare_servers = 10
+pm.max_requests = 500
+security.limit_extensions = .php
+php_admin_value[open_basedir] = /var/www/wp01:/tmp
+php_admin_value[error_log] = /var/log/php8.3-fpm/wp01-error.log
+php_admin_flag[log_errors] = on</code></pre>
+<h2>wp02 Pool</h2>
+<pre><code>[wp02]
+user = wp02
+group = wp02
+listen = /run/php/php8.3-wp02.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+pm = dynamic
+pm.max_children = 20
+pm.start_servers = 5
+pm.min_spare_servers = 3
+pm.max_spare_servers = 10
+pm.max_requests = 500
+security.limit_extensions = .php
+php_admin_value[open_basedir] = /var/www/wp02:/tmp
+php_admin_value[error_log] = /var/log/php8.3-fpm/wp02-error.log
+php_admin_flag[log_errors] = on</code></pre>
+<h2>Apply</h2>
+<pre><code>php-fpm8.3 -t
+systemctl restart php8.3-fpm
+systemctl status php8.3-fpm</code></pre>
+<h2>Verify Sockets</h2>
+<pre><code>ls -l /run/php/php8.3-wp01.sock
+ls -l /run/php/php8.3-wp02.sock</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><title>04. Shared MariaDB</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>04. Shared MariaDB</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>04. Shared MariaDB</h1>
+<h2>Purpose</h2>
+<p>This project uses one local MariaDB instance for all WordPress websites and for Nginx Proxy Manager metadata. Each component must use its own database and database user.</p>
+<h2>Install MariaDB</h2>
+<pre><code>apt update
+apt install -y mariadb-server mariadb-client
+systemctl enable --now mariadb</code></pre>
+<h2>Secure MariaDB</h2>
+<p>Run:</p>
+<pre><code>mysql_secure_installation</code></pre>
+<p>Recommended choices:</p>
+<pre><code>Switch to unix_socket authentication: Y
+Change root password: Y, if password auth is used
+Remove anonymous users: Y
+Disallow root login remotely: Y
+Remove test database: Y
+Reload privilege tables: Y</code></pre>
+<h2>Bind MariaDB to Localhost</h2>
+<p>Edit:</p>
+<pre><code>nano /etc/mysql/mariadb.conf.d/50-server.cnf</code></pre>
+<p>Set:</p>
+<pre><code>[mysqld]
+bind-address = 127.0.0.1
+skip-name-resolve
+local-infile = 0</code></pre>
+<p>Recommended tuning:</p>
+<pre><code>max_connections = 200
+innodb_buffer_pool_size = 512M
+innodb_file_per_table = 1
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci</code></pre>
+<p>Restart:</p>
+<pre><code>systemctl restart mariadb
+ss -tulpn | grep 3306</code></pre>
+<p>Expected:</p>
+<pre><code>127.0.0.1:3306</code></pre>
+<h2>Create NPM Database</h2>
+<pre><code>CREATE DATABASE npm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER &#x27;npm_user&#x27;@&#x27;127.0.0.1&#x27; IDENTIFIED BY &#x27;CHANGE_THIS_COMPLEX_PASSWORD&#x27;;
+GRANT ALL PRIVILEGES ON npm.* TO &#x27;npm_user&#x27;@&#x27;127.0.0.1&#x27;;
+FLUSH PRIVILEGES;</code></pre>
+<h2>Create WordPress Databases</h2>
+<pre><code>CREATE DATABASE wp01_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER &#x27;wp01_user&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;CHANGE_THIS_COMPLEX_PASSWORD&#x27;;
+GRANT ALL PRIVILEGES ON wp01_db.* TO &#x27;wp01_user&#x27;@&#x27;localhost&#x27;;
+
+CREATE DATABASE wp02_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER &#x27;wp02_user&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;CHANGE_THIS_COMPLEX_PASSWORD&#x27;;
+GRANT ALL PRIVILEGES ON wp02_db.* TO &#x27;wp02_user&#x27;@&#x27;localhost&#x27;;
+
+FLUSH PRIVILEGES;</code></pre>
+<h2>Backup Important Database Metadata</h2>
+<pre><code>mysqldump --single-transaction --routines --events npm &gt; /backup/wordpress-platform/npm.sql
+mysqldump --single-transaction --routines --events wp01_db &gt; /backup/wordpress-platform/wp01_db.sql
+mysqldump --single-transaction --routines --events wp02_db &gt; /backup/wordpress-platform/wp02_db.sql</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

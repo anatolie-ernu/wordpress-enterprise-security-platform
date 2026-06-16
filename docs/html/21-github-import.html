@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><title>21. GitHub Import</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>21. GitHub Import</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>21. GitHub Import</h1>
+<h2>Repository</h2>
+<pre><code>https://github.com/anatolie-ernu/wordpress-enterprise-security-platform.git</code></pre>
+<h2>Clean Initial Import</h2>
+<pre><code>cd wordpress-enterprise-security-platform
+
+git init
+git branch -M main
+git remote add origin https://github.com/anatolie-ernu/wordpress-enterprise-security-platform.git
+
+git add .
+git commit -m &quot;Initial release v1.0&quot;
+git push -u origin main</code></pre>
+<h2>Force Replace Existing Remote</h2>
+<p>Use only when the remote repository must be replaced completely:</p>
+<pre><code>git push --force -u origin main</code></pre>
+<h2>Release Tag</h2>
+<pre><code>git tag -a v1.0 -m &quot;WordPress Enterprise Security Platform v1.0&quot;
+git push origin v1.0</code></pre>
+<p>If the tag already exists and must be replaced:</p>
+<pre><code>git tag -f v1.0 -m &quot;WordPress Enterprise Security Platform v1.0&quot;
+git push --force origin v1.0</code></pre>
+<h2>Recommended Release Notes</h2>
+<pre><code>WordPress Enterprise Security Platform v1.0
+
+Debian 13 single-host WordPress enterprise security platform with Nginx Proxy Manager, Cloudflare DNS Challenge, local backend Nginx, dedicated PHP-FPM pools, shared MariaDB, UFW, Fail2Ban, optional ModSecurity OWASP CRS, backups and operational validation.</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

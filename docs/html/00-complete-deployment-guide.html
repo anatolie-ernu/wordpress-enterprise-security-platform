@@ -1,0 +1,77 @@
+<!doctype html><html><head><meta charset="utf-8"><title>00. Complete Deployment Guide</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>00. Complete Deployment Guide</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>00. Complete Deployment Guide</h1>
+<p>**Project:** <code>wordpress-enterprise-security-platform</code>  </p>
+<p>**Brand:** Anatolie Ernu - IT &amp; Security Solutions - https://www.ernu.eu  </p>
+<p>**Target OS:** Debian 13 Trixie  </p>
+<p>**Reference domain:** <code>ernu.sec</code>  </p>
+<p>**Main website examples:** <code>wp01.ernu.sec</code>, <code>wp02.ernu.sec</code></p>
+<p>This documentation set merges the stronger parts from the previous PDF guide and the current GitHub repository structure. It keeps the current architecture with Nginx Proxy Manager, Cloudflare DNS Challenge, local backend WordPress Nginx vhosts, isolated PHP-FPM pools, shared MariaDB, UFW, Fail2Ban and optional ModSecurity/OWASP CRS hardening.</p>
+<h2>Deployment Order</h2>
+<table>
+<tr><th>Step</th><th>Document</th><th>Purpose</th></tr>
+<tr><td>01</td><td>`01-architecture-and-ip-plan.md`</td><td>Architecture, traffic flow, IP/port plan</td></tr>
+<tr><td>02</td><td>`02-debian-13-preparation.md`</td><td>Base Debian 13 installation and OS hardening</td></tr>
+<tr><td>03</td><td>`03-docker-ce-installation.md`</td><td>Docker Engine and Compose plugin for NPM</td></tr>
+<tr><td>04</td><td>`04-shared-mariadb.md`</td><td>Shared local MariaDB instance for WordPress and NPM</td></tr>
+<tr><td>05</td><td>`05-nginx-proxy-manager.md`</td><td>NPM deployment and admin access model</td></tr>
+<tr><td>06</td><td>`06-cloudflare-real-ip-and-ssl.md`</td><td>Cloudflare SSL, DNS Challenge and real visitor IP</td></tr>
+<tr><td>07</td><td>`07-wordpress-installation.md`</td><td>WordPress installation model and wp-config hardening</td></tr>
+<tr><td>08</td><td>`08-backend-nginx-sites.md`</td><td>Backend Nginx vhosts listening on localhost only</td></tr>
+<tr><td>09</td><td>`09-php-fpm-pools.md`</td><td>Dedicated PHP-FPM pools per website</td></tr>
+<tr><td>10</td><td>`10-firewall-ufw.md`</td><td>UFW and Docker-aware firewall rules</td></tr>
+<tr><td>11</td><td>`11-fail2ban.md`</td><td>Fail2Ban protection for Nginx and WordPress</td></tr>
+<tr><td>12</td><td>`12-modsecurity-owasp-crs.md`</td><td>Optional ModSecurity + OWASP CRS integration</td></tr>
+<tr><td>13</td><td>`13-wordpress-filesystem-permissions.md`</td><td>Ownership, permissions and upload execution blocking</td></tr>
+<tr><td>14</td><td>`14-backup-and-recovery.md`</td><td>Backup and restore procedures</td></tr>
+<tr><td>15</td><td>`15-audit-and-integrity-monitoring.md`</td><td>auditd, integrity checks and WP-CLI verification</td></tr>
+<tr><td>16</td><td>`16-disaster-recovery.md`</td><td>Recovery scenarios</td></tr>
+<tr><td>17</td><td>`17-maintenance-and-updates.md`</td><td>Maintenance, update and patching plan</td></tr>
+<tr><td>18</td><td>`18-troubleshooting.md`</td><td>Troubleshooting procedures</td></tr>
+<tr><td>19</td><td>`19-security-checklist.md`</td><td>Security checklist</td></tr>
+<tr><td>20</td><td>`20-validation-checklist.md`</td><td>Final validation checklist</td></tr>
+<tr><td>21</td><td>`21-github-import.md`</td><td>GitHub import and release tagging</td></tr>
+</table>
+<h2>Core Architecture</h2>
+<pre><code>Internet Client
+     |
+     v
+Cloudflare DNS/WAF/CDN
+     |
+     v
+Debian 13 Host - 10.10.10.20
+     |
+     +-- Docker: Nginx Proxy Manager
+     |       |-- 0.0.0.0:80
+     |       |-- 0.0.0.0:443
+     |       `-- 10.10.10.20:81 LAN only
+     |
+     +-- Backend Nginx on host
+     |       |-- 127.0.0.1:8081 -&gt; wp01.ernu.sec
+     |       `-- 127.0.0.1:8082 -&gt; wp02.ernu.sec
+     |
+     +-- PHP-FPM pools
+     |       |-- /run/php/php8.3-wp01.sock
+     |       `-- /run/php/php8.3-wp02.sock
+     |
+     `-- MariaDB
+             `-- 127.0.0.1:3306</code></pre>
+<h2>Important Rules</h2>
+<p>1. NPM is public only on ports <code>80</code> and <code>443</code>.</p>
+<p>2. NPM Admin UI on port <code>81</code> is LAN only.</p>
+<p>3. WordPress backend Nginx sites must listen on <code>127.0.0.1</code> only.</p>
+<p>4. MariaDB must listen on <code>127.0.0.1</code> only.</p>
+<p>5. Each WordPress site must have its own Linux user, PHP-FPM pool, database and log files.</p>
+<p>6. Cloudflare real IP must be preserved through NPM to backend Nginx and application logs.</p>
+<p>7. Fail2Ban must ban by real visitor IP, not by the proxy IP.</p>
+<h2>Production Naming Convention</h2>
+<table>
+<tr><th>Object</th><th>Example</th></tr>
+<tr><td>Hostname</td><td>`web01.ernu.sec`</td></tr>
+<tr><td>Server LAN IP</td><td>`10.10.10.20`</td></tr>
+<tr><td>NPM Admin URL</td><td>`http://10.10.10.20:81`</td></tr>
+<tr><td>WordPress site 1</td><td>`wp01.ernu.sec`</td></tr>
+<tr><td>WordPress site 2</td><td>`wp02.ernu.sec`</td></tr>
+<tr><td>WordPress root 1</td><td>`/var/www/wp01`</td></tr>
+<tr><td>WordPress root 2</td><td>`/var/www/wp02`</td></tr>
+<tr><td>NPM data</td><td>`/opt/docker/nginx-proxy-manager`</td></tr>
+<tr><td>Backup root</td><td>`/backup/wordpress-platform`</td></tr>
+</table><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

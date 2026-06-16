@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>01. Architecture and IP Plan</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>01. Architecture and IP Plan</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>01. Architecture and IP Plan</h1>
+<h2>Design Principle</h2>
+<p>The platform uses a single Debian 13 host with a clear separation between public reverse proxy traffic and local backend application services.</p>
+<p>Nginx Proxy Manager is the only public HTTP/HTTPS entry point. Backend WordPress Nginx vhosts and MariaDB are local-only services and must not be reachable directly from the network.</p>
+<h2>Logical Flow</h2>
+<pre><code>Client -&gt; Cloudflare -&gt; NPM Docker container -&gt; Backend Nginx localhost -&gt; PHP-FPM pool -&gt; MariaDB localhost</code></pre>
+<h2>Component Addressing Table</h2>
+<table>
+<tr><th>Component</th><th>Address</th><th>Port</th><th>Exposure</th><th>Notes</th></tr>
+<tr><td>Debian host</td><td>`10.10.10.20`</td><td>-</td><td>LAN</td><td>Main server</td></tr>
+<tr><td>NPM HTTP</td><td>`0.0.0.0`</td><td>`80/tcp`</td><td>Public</td><td>Cloudflare/public traffic</td></tr>
+<tr><td>NPM HTTPS</td><td>`0.0.0.0`</td><td>`443/tcp`</td><td>Public</td><td>Cloudflare/public traffic</td></tr>
+<tr><td>NPM Admin UI</td><td>`10.10.10.20`</td><td>`81/tcp`</td><td>LAN only</td><td>Never expose publicly</td></tr>
+<tr><td>Backend Nginx wp01</td><td>`127.0.0.1`</td><td>`8081/tcp`</td><td>Localhost only</td><td>Accessed only by NPM</td></tr>
+<tr><td>Backend Nginx wp02</td><td>`127.0.0.1`</td><td>`8082/tcp`</td><td>Localhost only</td><td>Accessed only by NPM</td></tr>
+<tr><td>MariaDB</td><td>`127.0.0.1`</td><td>`3306/tcp`</td><td>Localhost only</td><td>Shared DB instance</td></tr>
+<tr><td>PHP-FPM wp01</td><td>Unix socket</td><td>-</td><td>Local</td><td>`/run/php/php8.3-wp01.sock`</td></tr>
+<tr><td>PHP-FPM wp02</td><td>Unix socket</td><td>-</td><td>Local</td><td>`/run/php/php8.3-wp02.sock`</td></tr>
+</table>
+<h2>Site Isolation Model</h2>
+<table>
+<tr><th>Site</th><th>Linux User</th><th>Web Root</th><th>PHP-FPM Pool</th><th>Database</th><th>Backend Port</th></tr>
+<tr><td>wp01</td><td>`wp01`</td><td>`/var/www/wp01`</td><td>`wp01`</td><td>`wp01_db`</td><td>8081</td></tr>
+<tr><td>wp02</td><td>`wp02`</td><td>`/var/www/wp02`</td><td>`wp02`</td><td>`wp02_db`</td><td>8082</td></tr>
+</table>
+<h2>Security Boundaries</h2>
+<p>• NPM accepts public traffic.</p>
+<p>• Backend Nginx accepts traffic only from localhost.</p>
+<p>• PHP-FPM pools run under dedicated users.</p>
+<p>• MariaDB accepts local connections only.</p>
+<p>• UFW blocks public access to administrative and backend ports.</p>
+<p>• Fail2Ban works with real visitor IP from Cloudflare/NPM headers.</p>
+<h2>DNS Model</h2>
+<table>
+<tr><th>Record</th><th>Type</th><th>Target</th><th>Cloudflare Proxy</th></tr>
+<tr><td>`wp01.ernu.sec`</td><td>A</td><td>Public server IP</td><td>Proxied</td></tr>
+<tr><td>`wp02.ernu.sec`</td><td>A</td><td>Public server IP</td><td>Proxied</td></tr>
+<tr><td>`npm.ernu.sec`</td><td>A</td><td>Optional LAN/VPN only</td><td>DNS only or not used</td></tr>
+</table>
+<p>Do not publish direct backend hostnames for ports <code>8081</code> and <code>8082</code>.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

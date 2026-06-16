@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><title>03. Docker CE Installation on Debian 13</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>03. Docker CE Installation on Debian 13</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>03. Docker CE Installation on Debian 13</h1>
+<h2>Purpose</h2>
+<p>Nginx Proxy Manager is deployed as a Docker container. Docker Engine and the Docker Compose plugin must be installed before the reverse proxy layer is deployed.</p>
+<h2>Remove Conflicting Packages</h2>
+<pre><code>apt remove -y docker.io docker-compose docker-doc podman-docker containerd runc || true</code></pre>
+<h2>Install Required Packages</h2>
+<pre><code>apt update
+apt install -y ca-certificates curl gnupg lsb-release</code></pre>
+<h2>Add Docker GPG Key</h2>
+<pre><code>install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc</code></pre>
+<h2>Add Docker Repository</h2>
+<pre><code>echo \
+&quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+https://download.docker.com/linux/debian \
+$(. /etc/os-release &amp;&amp; echo &quot;$VERSION_CODENAME&quot;) stable&quot; \
+&gt; /etc/apt/sources.list.d/docker.list</code></pre>
+<p>For Debian 13, verify that the codename is <code>trixie</code>:</p>
+<pre><code>. /etc/os-release
+echo &quot;$VERSION_CODENAME&quot;</code></pre>
+<h2>Install Docker Engine</h2>
+<pre><code>apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</code></pre>
+<h2>Enable Docker</h2>
+<pre><code>systemctl enable --now docker
+systemctl status docker</code></pre>
+<h2>Validate</h2>
+<pre><code>docker version
+docker compose version
+docker run --rm hello-world</code></pre>
+<h2>Directory Layout</h2>
+<pre><code>mkdir -p /opt/docker/nginx-proxy-manager/data
+mkdir -p /opt/docker/nginx-proxy-manager/letsencrypt
+mkdir -p /opt/docker/nginx-proxy-manager/logs</code></pre>
+<h2>Docker and UFW Warning</h2>
+<p>Docker manipulates iptables directly. UFW rules alone may not fully protect ports published by Docker if those ports are bound to <code>0.0.0.0</code>.</p>
+<p>For NPM Admin UI use LAN binding:</p>
+<pre><code>ports:
+  - &quot;80:80&quot;
+  - &quot;443:443&quot;
+  - &quot;10.10.10.20:81:81&quot;</code></pre>
+<p>Also apply the DOCKER-USER chain rules from <code>configs/ufw/docker-user-chain.rules.sh</code>.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

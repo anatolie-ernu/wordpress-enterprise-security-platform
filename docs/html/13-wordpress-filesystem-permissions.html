@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><title>13. WordPress Filesystem Permissions</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>13. WordPress Filesystem Permissions</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>13. WordPress Filesystem Permissions</h1>
+<h2>Purpose</h2>
+<p>Correct ownership and permissions limit the impact of a compromised plugin, theme or upload vector.</p>
+<h2>Ownership Model</h2>
+<table>
+<tr><th>Path</th><th>Owner</th><th>Group</th><th>Notes</th></tr>
+<tr><td>`/var/www/wp01`</td><td>`wp01`</td><td>`wp01`</td><td>Site 1 files</td></tr>
+<tr><td>`/var/www/wp02`</td><td>`wp02`</td><td>`wp02`</td><td>Site 2 files</td></tr>
+<tr><td>Nginx process</td><td>`www-data`</td><td>`www-data`</td><td>Reads through backend Nginx</td></tr>
+<tr><td>PHP-FPM wp01</td><td>`wp01`</td><td>`wp01`</td><td>Executes wp01 PHP</td></tr>
+<tr><td>PHP-FPM wp02</td><td>`wp02`</td><td>`wp02`</td><td>Executes wp02 PHP</td></tr>
+</table>
+<h2>Recommended Permissions</h2>
+<pre><code>find /var/www/wp01 -type d -exec chmod 755 {} \;
+find /var/www/wp01 -type f -exec chmod 644 {} \;
+chmod 640 /var/www/wp01/wp-config.php
+chown -R wp01:wp01 /var/www/wp01</code></pre>
+<p>Repeat for <code>wp02</code>.</p>
+<h2>Harden wp-config.php</h2>
+<pre><code>chmod 640 /var/www/wp01/wp-config.php
+chown wp01:www-data /var/www/wp01/wp-config.php</code></pre>
+<h2>Block PHP in Uploads</h2>
+<p>Create <code>.user.ini</code> or rely on Nginx deny rules. Backend Nginx must include:</p>
+<pre><code>location ~* /wp-content/uploads/.*\.php$ {
+    deny all;
+}</code></pre>
+<h2>Permission Audit Script</h2>
+<pre><code>#!/bin/bash
+set -e
+SITE_ROOT=&quot;${1:-/var/www/wp01}&quot;
+SITE_USER=&quot;$(basename &quot;$SITE_ROOT&quot;)&quot;
+chown -R &quot;$SITE_USER:$SITE_USER&quot; &quot;$SITE_ROOT&quot;
+find &quot;$SITE_ROOT&quot; -type d -exec chmod 755 {} \;
+find &quot;$SITE_ROOT&quot; -type f -exec chmod 644 {} \;
+chmod 640 &quot;$SITE_ROOT/wp-config.php&quot;</code></pre>
+<h2>Special Protection</h2>
+<p>Monitor unexpected PHP files in uploads:</p>
+<pre><code>find /var/www/wp01/wp-content/uploads -type f -name &#x27;*.php&#x27; -ls</code></pre>
+<p>Expected result: no files.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

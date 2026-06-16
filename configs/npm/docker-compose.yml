@@ -1,0 +1,49 @@
+services:
+  npm-app:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm-app
+    restart: unless-stopped
+    ports:
+      # Public HTTP and HTTPS must belong only to Nginx Proxy Manager.
+      - '80:80'
+      - '443:443'
+
+      # Management UI is reachable from LAN via the server LAN IP.
+      # Protect this port with UFW rules. Do not expose it publicly.
+      - '${SERVER_LAN_IP:-10.10.10.20}:81:81'
+    environment:
+      TZ: ${TZ:-Europe/Chisinau}
+
+      # NPM uses the same MariaDB server as the WordPress websites,
+      # but it has its own database and its own database user.
+      DB_MYSQL_HOST: host.docker.internal
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: ${NPM_DB_USER:-npm_user}
+      DB_MYSQL_PASSWORD: ${NPM_DB_PASSWORD:-CHANGE_ME_NPM_DB_PASSWORD}
+      DB_MYSQL_NAME: ${NPM_DB_NAME:-npm}
+
+      # Uncomment if IPv6 is not enabled on the host.
+      # DISABLE_IPV6: 'true'
+    volumes:
+      # NPM application data, SQLite remnants, custom config and metadata.
+      - ./data:/data
+
+      # Let's Encrypt certificates managed by NPM.
+      - ./letsencrypt:/etc/letsencrypt
+
+      # Explicit external log mapping for audit, backup and Fail2Ban review.
+      - ./logs:/data/logs
+    extra_hosts:
+      # Required so the container can reach MariaDB running on the Debian host.
+      - 'host.docker.internal:host-gateway'
+    networks:
+      npm_net:
+        ipv4_address: 172.30.10.10
+
+networks:
+  npm_net:
+    name: npm_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24

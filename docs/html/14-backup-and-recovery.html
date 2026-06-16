@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>14. Backup and Recovery</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>14. Backup and Recovery</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>14. Backup and Recovery</h1>
+<h2>Backup Scope</h2>
+<p>Backup must include:</p>
+<p>• WordPress files per site</p>
+<p>• MariaDB databases</p>
+<p>• Nginx backend configurations</p>
+<p>• PHP-FPM pool configurations</p>
+<p>• NPM data and certificates</p>
+<p>• UFW/Fail2Ban configuration</p>
+<p>• Project documentation and scripts</p>
+<h2>Directory</h2>
+<pre><code>mkdir -p /backup/wordpress-platform
+chmod 700 /backup/wordpress-platform</code></pre>
+<h2>Manual Backup</h2>
+<pre><code>BACKUP_DIR=&quot;/backup/wordpress-platform/$(date +%F-%H%M%S)&quot;
+mkdir -p &quot;$BACKUP_DIR&quot;
+
+tar -czf &quot;$BACKUP_DIR/wp01-files.tar.gz&quot; /var/www/wp01
+tar -czf &quot;$BACKUP_DIR/wp02-files.tar.gz&quot; /var/www/wp02
+
+mysqldump --single-transaction --routines --events wp01_db &gt; &quot;$BACKUP_DIR/wp01_db.sql&quot;
+mysqldump --single-transaction --routines --events wp02_db &gt; &quot;$BACKUP_DIR/wp02_db.sql&quot;
+mysqldump --single-transaction --routines --events npm &gt; &quot;$BACKUP_DIR/npm.sql&quot;
+
+tar -czf &quot;$BACKUP_DIR/etc-nginx.tar.gz&quot; /etc/nginx
+tar -czf &quot;$BACKUP_DIR/etc-php-fpm.tar.gz&quot; /etc/php/8.3/fpm
+tar -czf &quot;$BACKUP_DIR/npm-data.tar.gz&quot; /opt/docker/nginx-proxy-manager</code></pre>
+<h2>Cron Backup</h2>
+<pre><code>0 2 * * * /usr/local/bin/wp-platform-backup.sh &gt;&gt; /var/log/wp-platform-backup.log 2&gt;&amp;1</code></pre>
+<h2>Restore Sequence</h2>
+<p>1. Reinstall Debian 13 base.</p>
+<p>2. Restore Docker and NPM.</p>
+<p>3. Restore MariaDB databases.</p>
+<p>4. Restore WordPress files.</p>
+<p>5. Restore Nginx and PHP-FPM configuration.</p>
+<p>6. Validate ports and logs.</p>
+<p>7. Validate application login and frontend.</p>
+<h2>Restore Database Example</h2>
+<pre><code>mysql wp01_db &lt; wp01_db.sql</code></pre>
+<h2>Restore Files Example</h2>
+<pre><code>tar -xzf wp01-files.tar.gz -C /
+chown -R wp01:wp01 /var/www/wp01</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

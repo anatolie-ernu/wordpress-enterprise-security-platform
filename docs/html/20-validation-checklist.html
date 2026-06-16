@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><title>20. Validation Checklist</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>20. Validation Checklist</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>20. Validation Checklist</h1>
+<h2>Services</h2>
+<pre><code>systemctl status nginx
+systemctl status php8.3-fpm
+systemctl status mariadb
+systemctl status fail2ban
+systemctl status docker</code></pre>
+<h2>Ports</h2>
+<pre><code>ss -tulpn</code></pre>
+<p>Expected:</p>
+<pre><code>0.0.0.0:80
+0.0.0.0:443
+10.10.10.20:81
+127.0.0.1:3306
+127.0.0.1:8081
+127.0.0.1:8082</code></pre>
+<h2>NPM</h2>
+<p>☐ Admin UI reachable from LAN</p>
+<p>☐ Admin UI not reachable from Internet</p>
+<p>☐ Proxy host wp01 created</p>
+<p>☐ Proxy host wp02 created</p>
+<p>☐ SSL certificate issued via Cloudflare DNS Challenge</p>
+<h2>WordPress</h2>
+<p>☐ `https://wp01.ernu.sec` loads</p>
+<p>☐ `https://wp02.ernu.sec` loads</p>
+<p>☐ `/wp-admin` loads</p>
+<p>☐ media upload works</p>
+<p>☐ plugin update works according to policy</p>
+<h2>Real IP</h2>
+<pre><code>tail -f /var/log/nginx/wp01.access.log</code></pre>
+<p>☐ logged IP is real visitor IP</p>
+<p>☐ Fail2Ban bans the real visitor IP</p>
+<h2>Backup</h2>
+<p>☐ database backup created</p>
+<p>☐ file backup created</p>
+<p>☐ restore tested on a non-production environment</p>
+<h2>Final Security Tests</h2>
+<pre><code>curl -I http://SERVER_PUBLIC_IP:8081
+curl -I http://SERVER_PUBLIC_IP:8082
+curl -I http://SERVER_PUBLIC_IP:81</code></pre>
+<p>Expected: not publicly accessible.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

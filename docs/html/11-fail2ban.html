@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><title>11. Fail2Ban</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>11. Fail2Ban</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>11. Fail2Ban</h1>
+<h2>Purpose</h2>
+<p>Fail2Ban protects WordPress login, XML-RPC, backend Nginx and NPM-facing logs. It must use real visitor IPs, not only the NPM container IP.</p>
+<h2>Install</h2>
+<pre><code>apt install -y fail2ban
+systemctl enable --now fail2ban</code></pre>
+<h2>WordPress Login Filter</h2>
+<p>Create:</p>
+<pre><code>nano /etc/fail2ban/filter.d/wordpress-login.conf</code></pre>
+<p>Content:</p>
+<pre><code>[Definition]
+failregex = ^&lt;HOST&gt; .* &quot;POST /wp-login.php HTTP/.*&quot; (200|302|403|429)
+ignoreregex =</code></pre>
+<h2>XML-RPC Filter</h2>
+<pre><code>[Definition]
+failregex = ^&lt;HOST&gt; .* &quot;POST /xmlrpc.php HTTP/.*&quot; (200|403|429)
+ignoreregex =</code></pre>
+<h2>Jail Configuration</h2>
+<p>Create:</p>
+<pre><code>nano /etc/fail2ban/jail.d/wordpress-platform.local</code></pre>
+<p>Content:</p>
+<pre><code>[wordpress-login]
+enabled = true
+filter = wordpress-login
+logpath = /var/log/nginx/wp01.access.log
+          /var/log/nginx/wp02.access.log
+maxretry = 5
+findtime = 10m
+bantime = 1h
+action = ufw
+
+[wordpress-xmlrpc]
+enabled = true
+filter = wordpress-xmlrpc
+logpath = /var/log/nginx/wp01.access.log
+          /var/log/nginx/wp02.access.log
+maxretry = 3
+findtime = 10m
+bantime = 6h
+action = ufw</code></pre>
+<h2>Apply</h2>
+<pre><code>fail2ban-client reload
+fail2ban-client status
+fail2ban-client status wordpress-login</code></pre>
+<h2>Verification</h2>
+<pre><code>fail2ban-regex /var/log/nginx/wp01.access.log /etc/fail2ban/filter.d/wordpress-login.conf</code></pre>
+<p>If the matched IP is the proxy IP, fix Cloudflare/NPM/backend real IP handling first.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

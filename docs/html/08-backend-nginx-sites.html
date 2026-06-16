@@ -1,0 +1,89 @@
+<!doctype html><html><head><meta charset="utf-8"><title>08. Backend Nginx Sites</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>08. Backend Nginx Sites</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>08. Backend Nginx Sites</h1>
+<h2>Purpose</h2>
+<p>Backend Nginx serves WordPress locally only. It must not expose WordPress directly to the public network.</p>
+<h2>Install Nginx</h2>
+<pre><code>apt install -y nginx
+systemctl enable --now nginx</code></pre>
+<h2>Global Hardening</h2>
+<p>In <code>/etc/nginx/nginx.conf</code>:</p>
+<pre><code>server_tokens off;
+client_max_body_size 64m;</code></pre>
+<h2>wp01 Backend Virtual Host</h2>
+<p>Create:</p>
+<pre><code>nano /etc/nginx/sites-available/wp01.conf</code></pre>
+<p>Content:</p>
+<pre><code>server {
+    listen 127.0.0.1:8081;
+    server_name wp01.ernu.sec;
+    root /var/www/wp01;
+    index index.php index.html;
+
+    include /etc/nginx/snippets/cloudflare-real-ip.conf;
+
+    access_log /var/log/nginx/wp01.access.log realip;
+    error_log /var/log/nginx/wp01.error.log warn;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-wp01.sock;
+    }
+
+    location ~* /wp-content/uploads/.*\.php$ {
+        deny all;
+    }
+
+    location ~* /(wp-config.php|xmlrpc.php|readme.html|license.txt) {
+        deny all;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}</code></pre>
+<h2>wp02 Backend Virtual Host</h2>
+<pre><code>server {
+    listen 127.0.0.1:8082;
+    server_name wp02.ernu.sec;
+    root /var/www/wp02;
+    index index.php index.html;
+
+    include /etc/nginx/snippets/cloudflare-real-ip.conf;
+
+    access_log /var/log/nginx/wp02.access.log realip;
+    error_log /var/log/nginx/wp02.error.log warn;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-wp02.sock;
+    }
+
+    location ~* /wp-content/uploads/.*\.php$ {
+        deny all;
+    }
+
+    location ~* /(wp-config.php|xmlrpc.php|readme.html|license.txt) {
+        deny all;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}</code></pre>
+<h2>Enable Sites</h2>
+<pre><code>ln -s /etc/nginx/sites-available/wp01.conf /etc/nginx/sites-enabled/wp01.conf
+ln -s /etc/nginx/sites-available/wp02.conf /etc/nginx/sites-enabled/wp02.conf
+nginx -t
+systemctl reload nginx</code></pre>
+<h2>Verify Listening Addresses</h2>
+<pre><code>ss -tulpn | grep nginx</code></pre>
+<p>Expected:</p>
+<pre><code>127.0.0.1:8081
+127.0.0.1:8082</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

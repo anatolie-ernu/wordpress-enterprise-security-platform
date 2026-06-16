@@ -1,0 +1,13 @@
+[mysqld]
+bind-address = 127.0.0.1
+skip-networking = 0
+local-infile = 0
+symbolic-links = 0
+skip-show-database
+max_connections = 150
+max_allowed_packet = 64M
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow-query.log
+long_query_time = 2

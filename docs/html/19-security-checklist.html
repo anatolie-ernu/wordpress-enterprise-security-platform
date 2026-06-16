@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><title>19. Security Checklist</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>19. Security Checklist</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>19. Security Checklist</h1>
+<h2>Host</h2>
+<p>☐ Debian 13 minimal installation</p>
+<p>☐ SSH root login disabled</p>
+<p>☐ SSH password login disabled</p>
+<p>☐ SSH allowed only from admin LAN/VPN</p>
+<p>☐ UFW enabled</p>
+<p>☐ unattended-upgrades enabled</p>
+<p>☐ auditd enabled</p>
+<p>☐ unnecessary services removed</p>
+<h2>Docker and NPM</h2>
+<p>☐ Docker installed from official repository</p>
+<p>☐ NPM Admin bound to LAN IP only</p>
+<p>☐ NPM Admin protected by UFW</p>
+<p>☐ NPM uses separate database `npm`</p>
+<p>☐ Cloudflare DNS Challenge token stored securely</p>
+<p>☐ NPM logs stored persistently</p>
+<h2>Backend Nginx</h2>
+<p>☐ Backend sites listen on `127.0.0.1` only</p>
+<p>☐ wp01 on `127.0.0.1:8081`</p>
+<p>☐ wp02 on `127.0.0.1:8082`</p>
+<p>☐ PHP execution blocked in uploads</p>
+<p>☐ sensitive files denied</p>
+<p>☐ real IP log format enabled</p>
+<h2>PHP-FPM</h2>
+<p>☐ Dedicated pool per website</p>
+<p>☐ Dedicated Linux user per website</p>
+<p>☐ `cgi.fix_pathinfo=0`</p>
+<p>☐ `expose_php=Off`</p>
+<p>☐ upload/post limits defined</p>
+<p>☐ pool logs separated</p>
+<h2>MariaDB</h2>
+<p>☐ Bound to `127.0.0.1`</p>
+<p>☐ Separate database per site</p>
+<p>☐ Separate user per site</p>
+<p>☐ NPM has separate DB user</p>
+<p>☐ remote root login disabled</p>
+<h2>WordPress</h2>
+<p>☐ `DISALLOW_FILE_EDIT=true`</p>
+<p>☐ unique salts configured</p>
+<p>☐ HTTPS behind proxy handled</p>
+<p>☐ uploads PHP execution denied</p>
+<p>☐ file permissions hardened</p>
+<p>☐ backups tested</p>
+<h2>Security Controls</h2>
+<p>☐ Fail2Ban enabled</p>
+<p>☐ Cloudflare real IP verified</p>
+<p>☐ ModSecurity evaluated or deployed in detection mode</p>
+<p>☐ auditd watches enabled</p>
+<p>☐ WP-CLI checksum verification available</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

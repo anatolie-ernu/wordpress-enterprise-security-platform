@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><title>17. Maintenance and Updates</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>17. Maintenance and Updates</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>17. Maintenance and Updates</h1>
+<h2>Weekly Tasks</h2>
+<pre><code>apt update
+apt list --upgradable
+systemctl --failed
+ufw status verbose
+fail2ban-client status</code></pre>
+<p>Review:</p>
+<p>• NPM logs</p>
+<p>• backend Nginx logs</p>
+<p>• PHP-FPM logs</p>
+<p>• WordPress security plugin alerts</p>
+<p>• backup success/failure</p>
+<h2>Monthly Tasks</h2>
+<pre><code>apt upgrade -y
+docker compose pull
+docker compose up -d</code></pre>
+<p>Before updating:</p>
+<p>1. Take database backup.</p>
+<p>2. Take file backup.</p>
+<p>3. Export NPM data.</p>
+<p>4. Confirm restore procedure.</p>
+<h2>WordPress Updates</h2>
+<p>Recommended order:</p>
+<p>1. Backup database and files.</p>
+<p>2. Update plugins.</p>
+<p>3. Update themes.</p>
+<p>4. Update WordPress core.</p>
+<p>5. Run frontend and admin validation.</p>
+<h2>Certificate Monitoring</h2>
+<p>Check certificates in NPM monthly.</p>
+<p>Also validate externally:</p>
+<pre><code>openssl s_client -connect wp01.ernu.sec:443 -servername wp01.ernu.sec &lt;/dev/null</code></pre>
+<h2>Log Rotation</h2>
+<p>Ensure logs do not fill the disk:</p>
+<pre><code>logrotate -d /etc/logrotate.conf</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><title>02. Debian 13 Preparation</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>02. Debian 13 Preparation</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>02. Debian 13 Preparation</h1>
+<h2>Minimal Installation</h2>
+<p>Use Debian 13 Trixie minimal installation. Install only:</p>
+<p>• SSH server</p>
+<p>• Standard system utilities</p>
+<p>Do not install a desktop environment, print server or unnecessary network services.</p>
+<h2>Recommended Partitioning</h2>
+<table>
+<tr><th>Mount Point</th><th>Purpose</th></tr>
+<tr><td>`/`</td><td>Operating system</td></tr>
+<tr><td>`/var`</td><td>Logs, web content, DB files if local storage is used</td></tr>
+<tr><td>`/home`</td><td>Admin users</td></tr>
+<tr><td>`/backup`</td><td>Optional local backup mount</td></tr>
+</table>
+<h2>Initial Update</h2>
+<pre><code>apt update &amp;&amp; apt upgrade -y</code></pre>
+<h2>Base Packages</h2>
+<pre><code>apt install -y   curl wget gnupg2 ca-certificates lsb-release apt-transport-https   software-properties-common unzip vim htop net-tools ufw fail2ban   auditd git rsync tar gzip jq openssl cron logrotate</code></pre>
+<h2>Hostname and Timezone</h2>
+<pre><code>hostnamectl set-hostname web01.ernu.sec
+timedatectl set-timezone Europe/Chisinau</code></pre>
+<p>Verify:</p>
+<pre><code>hostnamectl
+timedatectl</code></pre>
+<h2>Admin User</h2>
+<pre><code>adduser adminops
+usermod -aG sudo adminops</code></pre>
+<h2>SSH Hardening</h2>
+<p>Edit:</p>
+<pre><code>nano /etc/ssh/sshd_config</code></pre>
+<p>Recommended values:</p>
+<pre><code>Port 2222
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+AllowUsers adminops
+MaxAuthTries 3
+LoginGraceTime 30
+X11Forwarding no
+AllowTcpForwarding no
+ClientAliveInterval 300
+ClientAliveCountMax 2</code></pre>
+<p>Validate and restart:</p>
+<pre><code>sshd -t
+systemctl restart ssh</code></pre>
+<p>Do not close the active SSH session until a new session is tested successfully.</p>
+<h2>Kernel Hardening with sysctl</h2>
+<p>Create:</p>
+<pre><code>nano /etc/sysctl.d/99-wordpress-platform-hardening.conf</code></pre>
+<p>Content:</p>
+<pre><code>net.ipv4.ip_forward = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.tcp_syncookies = 1
+kernel.randomize_va_space = 2
+kernel.kptr_restrict = 2
+kernel.dmesg_restrict = 1
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1</code></pre>
+<p>Apply:</p>
+<pre><code>sysctl --system</code></pre>
+<h2>Automatic Security Updates</h2>
+<pre><code>apt install -y unattended-upgrades apt-listchanges</code></pre>
+<p>Enable:</p>
+<pre><code>dpkg-reconfigure -plow unattended-upgrades</code></pre>
+<p>Recommended file:</p>
+<pre><code>nano /etc/apt/apt.conf.d/50unattended-upgrades</code></pre>
+<p>Ensure security origins are enabled for Debian Trixie.</p>
+<h2>Service Check</h2>
+<pre><code>systemctl --failed
+ss -tulpn</code></pre>
+<p>No unexpected public service should be listening before continuing.</p><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>

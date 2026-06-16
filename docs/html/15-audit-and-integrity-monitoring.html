@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>15. Audit and Integrity Monitoring</title><link rel="stylesheet" href="style.css"></head><body><div class="header"><h1>15. Audit and Integrity Monitoring</h1><p>Anatolie Ernu - IT & Security Solutions - https://www.ernu.eu</p></div><div class="container"><main class="content"><h1>15. Audit and Integrity Monitoring</h1>
+<h2>Purpose</h2>
+<p>Audit and integrity checks help detect unauthorized modifications in WordPress core, plugins, themes and configuration files.</p>
+<h2>auditd Installation</h2>
+<pre><code>apt install -y auditd audispd-plugins
+systemctl enable --now auditd</code></pre>
+<h2>auditd Rules</h2>
+<p>Create:</p>
+<pre><code>nano /etc/audit/rules.d/wordpress-platform.rules</code></pre>
+<p>Content:</p>
+<pre><code>-w /var/www/wp01 -p wa -k wp01-files
+-w /var/www/wp02 -p wa -k wp02-files
+-w /etc/nginx -p wa -k nginx-config
+-w /etc/php/8.3/fpm -p wa -k php-fpm-config
+-w /etc/fail2ban -p wa -k fail2ban-config
+-w /opt/docker/nginx-proxy-manager -p wa -k npm-data</code></pre>
+<p>Apply:</p>
+<pre><code>augenrules --load
+systemctl restart auditd</code></pre>
+<p>Search events:</p>
+<pre><code>ausearch -k wp01-files
+ausearch -k nginx-config</code></pre>
+<h2>WP-CLI Integrity Checks</h2>
+<p>Install WP-CLI:</p>
+<pre><code>curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+mv wp-cli.phar /usr/local/bin/wp</code></pre>
+<p>Verify WordPress core:</p>
+<pre><code>sudo -u wp01 wp --path=/var/www/wp01 core verify-checksums</code></pre>
+<p>List modified plugins:</p>
+<pre><code>sudo -u wp01 wp --path=/var/www/wp01 plugin list</code></pre>
+<h2>Suspicious File Checks</h2>
+<pre><code>find /var/www/wp01/wp-content/uploads -type f -name &#x27;*.php&#x27; -ls
+find /var/www/wp01 -type f -mtime -2 -ls
+find /var/www/wp01 -type f -perm -002 -ls</code></pre>
+<h2>Log Review</h2>
+<pre><code>tail -f /var/log/nginx/wp01.access.log
+tail -f /var/log/nginx/wp01.error.log
+tail -f /var/log/php8.3-fpm/wp01-error.log
+journalctl -u nginx -u php8.3-fpm -u mariadb -u fail2ban -f</code></pre><div class="footer">MIT License | Copyright © 2026 Anatolie Ernu. Author attribution must be preserved.</div></main></div></body></html>
